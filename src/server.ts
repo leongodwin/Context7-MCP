@@ -3,92 +3,74 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 
+// Initialize the MCP server with a new name and version
 const server = new McpServer({
-  name: "mcp-streamable-http",
+  name: "context7-mcp",
   version: "1.0.0",
 });
 
-// Get Chuck Norris joke tool
-const getChuckJoke = server.tool(
-  "get-chuck-joke",
-  "Get a random Chuck Norris joke",
-  async () => {
-    const response = await fetch("https://api.chucknorris.io/jokes/random");
-    const data = await response.json();
-    return {
-      content: [
-        {
-          type: "text",
-          text: data.value,
-        },
-      ],
-    };
-  }
-);
-
-// Get Chuck Norris joke by category tool
-const getChuckJokeByCategory = server.tool(
-  "get-chuck-joke-by-category",
-  "Get a random Chuck Norris joke by category",
+// A tool to resolve a general library name into a Context7-compatible ID
+const resolveLibraryId = server.tool(
+  "resolve-library-id",
+  "Resolves a general library name into a Context7-compatible ID",
   {
-    category: z.string().describe("Category of the Chuck Norris joke"),
+    libraryName: z.string().describe("The name of the library to resolve (e.g., 'React' or 'Next.js')"),
   },
-  async (params: { category: string }) => {
-    const response = await fetch(
-      `https://api.chucknorris.io/jokes/random?category=${params.category}`
-    );
-    const data = await response.json();
+  async (params: { libraryName: string }) => {
+    // In a real-world scenario, this would call a Context7 API endpoint
+    // to find the most relevant library ID based on the name.
+    // For this example, we'll return a static result to show the structure.
+    console.log(`Resolving library name: ${params.libraryName}`);
     return {
       content: [
         {
           type: "text",
-          text: data.value,
+          text: `/nextjs/nextjs/v14`, // Example format for a Context7-compatible ID
         },
       ],
     };
   }
 );
 
-// Get Chuck Norris joke categories tool
-const getChuckCategories = server.tool(
-  "get-chuck-categories",
-  "Get all available categories for Chuck Norris jokes",
-  async () => {
-    const response = await fetch("https://api.chucknorris.io/jokes/categories");
-    const data = await response.json();
+// A tool to fetch up-to-date documentation for a given library ID
+const getLibraryDocs = server.tool(
+  "get-library-docs",
+  "Fetches up-to-date documentation for a library using its Context7-compatible ID",
+  {
+    context7CompatibleLibraryID: z.string().describe("The unique ID for the library (e.g., '/nextjs/nextjs/v14')"),
+    topic: z.string().optional().describe("An optional topic to focus the search on (e.g., 'routing')"),
+    tokens: z.number().optional().describe("An optional limit on the number of tokens to return"),
+  },
+  async (params: { context7CompatibleLibraryID: string, topic?: string, tokens?: number }) => {
+    // This function would call another Context7 API endpoint
+    // to fetch the actual documentation. The parameters would be
+    // passed to the external API to filter the results.
+    console.log(`Fetching docs for: ${params.context7CompatibleLibraryID} with topic: ${params.topic || 'none'}`);
+    
+    const mockDocumentation = `
+      // Context7 documentation for ${params.context7CompatibleLibraryID}
+      // Topic: ${params.topic || 'General'}
+      // Example code for a Next.js App Router page:
+      import { NextPage } from 'next';
+      const HomePage: NextPage = () => {
+        return <h1>Hello Context7!</h1>;
+      };
+      export default HomePage;
+    `;
+    
     return {
       content: [
         {
           type: "text",
-          text: data.join(", "),
+          text: mockDocumentation,
         },
       ],
     };
   }
 );
 
-// Get Dad joke tool
-const getDadJoke = server.tool(
-  "get-dad-joke",
-  "Get a random dad joke",
-  async () => {
-    const response = await fetch("https://icanhazdadjoke.com/", {
-      headers: {
-        Accept: "application/json",
-      },
-    });
-    const data = await response.json();
-    return {
-      content: [
-        {
-          type: "text",
-          text: data.joke,
-        },
-      ],
-    };
-  }
-);
-
+// The rest of the server setup remains the same, as it's the standard
+// boilerplate for the Model Context Protocol SDK.
 const app = express();
 app.use(express.json());
 
@@ -154,7 +136,7 @@ const PORT = process.env.PORT || 3000;
 setupServer()
   .then(() => {
     app.listen(PORT, () => {
-      console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
+      console.log(`MCP Context7 Server listening on port ${PORT}`);
     });
   })
   .catch((error) => {
